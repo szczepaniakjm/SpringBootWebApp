@@ -19,15 +19,17 @@ public class FileService {
 
     private final String rootPath = System.getProperty("user.dir");
 
-    private String filePath(MultipartFile file) {
-
-        final String imgPath = "\\src\\main\\resources\\static\\";
+    private String generateFilename(MultipartFile file) {
         String[] arr = file.getOriginalFilename().split("\\.");
         final String extension = arr[arr.length - 1];
-        return rootPath + imgPath + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-hh-mm-ss")) + "." + extension;
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-hh-mm-ss")) + "." + extension;
+    }
+    private String filePath() {
+        final String imgPath = "\\src\\main\\resources\\static\\img\\";
+        return rootPath + imgPath;
     }
 
-    public void addFile(MultipartFile file) throws IOException {
+    public String addFile(MultipartFile file) throws IOException {
         if (file == null) {
             throw new MyException("MULTIPART FILE IS NOT CORRECT");
         }
@@ -36,8 +38,36 @@ public class FileService {
             throw new MyException("FILE IS EMPTY");
         }
 
-        String path = filePath(file); //przekazuję plik, tworzę sciezke
+        String filename = generateFilename(file);
+        String path = filePath() + filename; // tworzę sciezke pliku
         FileCopyUtils.copy(file.getBytes(), new File(path));
+        return filename;
+    }
+
+    public void changeFile(MultipartFile file, String filename) throws IOException {
+        if (file == null) {
+            throw new MyException("MULTIPART FILE IS NOT CORRECT");
+        }
+
+        if (filename == null) {
+            throw new MyException("FILENAME IS NOT CORRECT");
+        }
+
+        if (file.getBytes().length == 0) {
+            throw new MyException("FILE IS EMPTY");
+        }
+
+        String path = filePath() + filename; // tworzę sciezke pliku
+        FileCopyUtils.copy(file.getBytes(), new File(path));
+    }
+
+    public boolean removeFile(String filename) throws IOException {
+        if (filename == null) {
+            throw new MyException("FILE IS NULL");
+        }
+
+        String path = filePath();
+        return new File(path + filename).delete();
     }
 
 }
